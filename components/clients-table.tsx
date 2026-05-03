@@ -1,9 +1,11 @@
 "use client";
 
+import { API_BASE_URL } from "@/lib/api-config";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { toast } from "react-toastify";
-import 'react-toastify/dist/ReactToastify.css';
+// @ts-ignore: side-effect import of CSS without module declarations
+import "react-toastify/dist/ReactToastify.css";
 import {
   type ColumnDef,
   flexRender,
@@ -15,7 +17,7 @@ import {
   getFilteredRowModel,
   type ColumnFiltersState,
 } from "@tanstack/react-table";
-import { ArrowUpDown, MoreHorizontal, Search, PlusCircle } from "lucide-react";
+import { AlertTriangle, ArrowUpDown, MoreHorizontal, Search, PlusCircle, Mail, Phone, UserRound } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -44,10 +46,16 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AddClientModal } from "./add-client-modal";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import axios from "axios";
 
-const API_BASE_URL = 'https://lwphsims-uat.up.railway.app';
 
 // Utility function to format currency in PHP
 const formatCurrency = (amount: string | number) => {
@@ -106,16 +114,16 @@ interface ClientsTableProps {
   initialClients: Client[];
   error?: string;
   loading?: boolean;
+  refreshSignal?: number;
   onAddClient: () => void;
 }
 
-export function ClientsTable({ initialClients, error, loading = false, onAddClient }: ClientsTableProps) {
+export function ClientsTable({ initialClients, error, loading = false, refreshSignal = 0, onAddClient }: ClientsTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [rowSelection, setRowSelection] = useState({});
   const [globalFilter, setGlobalFilter] = useState("");
   const [searchType, setSearchType] = useState<"name" | "contact" | "id">("name");
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [clientToDelete, setClientToDelete] = useState<string | null>(null);
@@ -123,7 +131,7 @@ export function ClientsTable({ initialClients, error, loading = false, onAddClie
     pageIndex: 0,
     pageSize: 10,
   });
-  const [clients, setClients] = useState<Client[]>([]);
+  const [clients, setClients] = useState<Client[]>(initialClients);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -194,7 +202,7 @@ export function ClientsTable({ initialClients, error, loading = false, onAddClie
 
   useEffect(() => {
     fetchClients();
-  }, [pagination.pageIndex, pagination.pageSize, sorting, globalFilter, columnFilters]);
+  }, [pagination.pageIndex, pagination.pageSize, sorting, globalFilter, columnFilters, refreshSignal]);
 
   const handleDeleteClient = async (clientId: string) => {
     try {
@@ -388,7 +396,7 @@ export function ClientsTable({ initialClients, error, loading = false, onAddClie
                 href={`/clients/${client.id}`}
                 className="flex items-center"
               >
-                <span>View Profile</span>
+                <span>Profile</span>
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem>
@@ -396,7 +404,7 @@ export function ClientsTable({ initialClients, error, loading = false, onAddClie
                 href={`/clients/${client.id}/edit`}
                 className="flex items-center"
               >
-                <span>Edit Profile</span>
+                <span>Edit</span>
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem>
@@ -404,7 +412,7 @@ export function ClientsTable({ initialClients, error, loading = false, onAddClie
                 href={`/clients/${client.id}/transactions?from=table`}
                 className="flex items-center"
               >
-                <span>View Transactions</span>
+                <span>Transactions</span>
               </Link>
             </DropdownMenuItem>
             {client.isConsignor ? (
@@ -504,9 +512,12 @@ export function ClientsTable({ initialClients, error, loading = false, onAddClie
   }
 
   return (
-    <Card>
+    <Card className="border-slate-200 shadow-sm">
       <CardHeader>
-        <CardTitle className="text-lg sm:text-xl">Manage Clients</CardTitle>
+        <div className="flex flex-col gap-1">
+          <p className="text-sm font-medium text-muted-foreground">Customer records</p>
+          <CardTitle className="text-xl sm:text-2xl">Manage Clients</CardTitle>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
@@ -572,7 +583,69 @@ export function ClientsTable({ initialClients, error, loading = false, onAddClie
               </Button>
             </div>
           </div>
-          <div className="rounded-md border overflow-x-auto">
+          <div className="space-y-3 md:hidden">
+            {loading || isLoading ? (
+              Array.from({ length: 5 }).map((_, index) => (
+                <div key={index} className="rounded-md border bg-white p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="h-10 w-10 rounded-md bg-slate-100" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 w-2/3 rounded bg-slate-200" />
+                      <div className="h-3 w-full rounded bg-slate-100" />
+                      <div className="h-3 w-3/4 rounded bg-slate-100" />
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : clients.length ? (
+              clients.map((client) => (
+                <div key={client.id} className="rounded-md border bg-white p-4 shadow-sm">
+                  <div className="flex items-start justify-between gap-3">
+                    <Link href={`/clients/${client.id}`} className="flex min-w-0 flex-1 items-start gap-3">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-[#756d60]/10 text-[#4d463e]">
+                        <UserRound className="h-5 w-5" />
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block truncate font-medium text-slate-950">{client.name}</span>
+                        <span className="mt-1 flex items-center gap-1 truncate text-xs text-muted-foreground">
+                          <Mail className="h-3.5 w-3.5 shrink-0" />
+                          {client.email || "-"}
+                        </span>
+                        <span className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+                          <Phone className="h-3.5 w-3.5 shrink-0" />
+                          {client.phone || "-"}
+                        </span>
+                      </span>
+                    </Link>
+                    <Badge variant={client.status === "Active" ? "default" : "outline"}>
+                      {client.status}
+                    </Badge>
+                  </div>
+                  <div className="mt-3 flex items-center justify-between border-t pt-3">
+                    <div className="flex gap-2">
+                      {client.isConsignor && (
+                        <Badge variant="outline" className="bg-primary/5">
+                          Consignor
+                        </Badge>
+                      )}
+                    </div>
+                    <Link
+                      href={`/clients/${client.id}`}
+                      className="text-sm font-medium text-[#4d463e] hover:underline"
+                    >
+                      View
+                    </Link>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="rounded-md border bg-white py-12 text-center text-sm text-muted-foreground">
+                No results.
+              </div>
+            )}
+          </div>
+
+          <div className="hidden rounded-md border md:block md:overflow-x-auto">
             <Table>
               <TableHeader>
                 {table.getHeaderGroups().map((headerGroup: any) => (
@@ -591,12 +664,26 @@ export function ClientsTable({ initialClients, error, loading = false, onAddClie
                 ))}
               </TableHeader>
               <TableBody>
-                {loading ? (
+                {loading || isLoading ? (
                   <TableRow>
                     <TableCell colSpan={columns.length} className="h-24 text-center">
-                      <div className="flex flex-col items-center justify-center py-8">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-2"></div>
-                        <span className="text-muted-foreground">Loading clients...</span>
+                      <div className="space-y-3 py-2">
+                        {Array.from({ length: 6 }).map((_, index) => (
+                          <div
+                            key={index}
+                            className="grid grid-cols-[40px_1.4fr_1.6fr_1fr_1fr_1fr_90px_90px_48px] items-center gap-3 px-3"
+                          >
+                            <div className="h-4 rounded bg-slate-100" />
+                            <div className="h-4 rounded bg-slate-200" />
+                            <div className="h-4 rounded bg-slate-100" />
+                            <div className="h-4 rounded bg-slate-100" />
+                            <div className="h-4 rounded bg-slate-100" />
+                            <div className="h-4 rounded bg-slate-100" />
+                            <div className="h-5 rounded-full bg-slate-100" />
+                            <div className="h-5 rounded-full bg-slate-100" />
+                            <div className="h-8 rounded bg-slate-100" />
+                          </div>
+                        ))}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -687,65 +774,48 @@ export function ClientsTable({ initialClients, error, loading = false, onAddClie
           </div>
         </div>
       </CardContent>
-      <AddClientModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onClientAdded={() => {
-          setIsModalOpen(false);
-          // Optionally refresh the clients list here
-        }}
-      />
-      
-      {/* Delete Confirmation Modal */}
-      {showDeleteConfirm && clientToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 w-[90vw] max-w-sm flex flex-col items-center">
-            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-3">
-              <svg
-                className="w-6 h-6 text-red-500"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                ></path>
-              </svg>
-            </div>
-            <h4 className="text-center font-medium text-lg text-gray-900 mb-1">
-              Confirm Delete
-            </h4>
-            <p className="text-center text-gray-600 mb-4">
-              Are you sure you want to delete this client? This action cannot be undone.
-            </p>
-            <div className="flex w-full gap-3">
-              <button
+      <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <DialogContent className="max-w-sm rounded-lg border-slate-200 p-0 shadow-xl">
+          <div className="p-6">
+            <DialogHeader className="items-center text-center">
+              <div className="mb-2 flex h-11 w-11 items-center justify-center rounded-md bg-red-50 text-red-600">
+                <AlertTriangle className="h-5 w-5" />
+              </div>
+              <DialogTitle className="text-xl font-semibold tracking-tight text-slate-950">
+                Delete Client
+              </DialogTitle>
+              <DialogDescription className="pt-1 text-sm leading-6 text-slate-600">
+                This action cannot be undone. Existing related transactions may also prevent deletion.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-2">
+              <Button
+                type="button"
+                variant="outline"
                 onClick={() => {
                   setShowDeleteConfirm(false);
                   setClientToDelete(null);
                 }}
-                className="flex-1 py-2 border border-gray-300 text-gray-500 rounded-md hover:bg-gray-50 transition-colors"
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
+                type="button"
+                className="bg-red-600 text-white hover:bg-red-700"
                 onClick={() => {
+                  if (clientToDelete) {
+                    handleDeleteClient(clientToDelete);
+                  }
                   setShowDeleteConfirm(false);
-                  handleDeleteClient(clientToDelete);
                   setClientToDelete(null);
                 }}
-                className="flex-1 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
               >
-                Yes, Delete
-              </button>
-            </div>
+                Delete
+              </Button>
+            </DialogFooter>
           </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

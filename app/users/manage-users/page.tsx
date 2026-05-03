@@ -1,5 +1,6 @@
 "use client";
 
+import { apiUrl } from "@/lib/api-config";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -19,7 +20,7 @@ import { useRouter } from "next/navigation";
 import { getPaginationWindow } from "@/components/ui/pagination-window";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationPrevious, PaginationNext, PaginationEllipsis } from "@/components/ui/pagination";
 
-const API_URL = "https://lwphsims-uat.up.railway.app/users";
+const API_URL = apiUrl("/users");
 
 // Add date formatting function
 const formatDate = (dateString: string | null) => {

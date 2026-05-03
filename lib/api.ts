@@ -1,9 +1,7 @@
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
-// Define the API base URL
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://lwphsims-uat.up.railway.app';
+import { API_BASE_URL } from './api-config';
 
 // Create axios instance with default config
 const api = axios.create({
@@ -29,6 +27,7 @@ export const handleSessionExpiration = () => {
   localStorage.removeItem('token');
   localStorage.removeItem('userData');
   localStorage.removeItem('userEmail');
+  localStorage.removeItem('otpToken');
   localStorage.removeItem('isAuthenticated');
 
   // Dispatch a custom event to show the session expired modal

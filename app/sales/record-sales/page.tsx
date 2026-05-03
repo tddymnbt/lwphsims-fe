@@ -1,5 +1,6 @@
 "use client";
 
+import { apiUrl } from "@/lib/api-config";
 import { useState, useEffect, useRef, Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -139,7 +140,7 @@ function RecordSalesContent() {
         });
 
         // Fetch products
-        const productsResponse =  await axios.get("https://lwphsims-uat.up.railway.app/products", {
+        const productsResponse =  await axios.get(apiUrl("/products"), {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -307,7 +308,7 @@ function RecordSalesContent() {
       }
 
       const response = await axios.post(
-        'https://lwphsims-uat.up.railway.app/sales',
+        apiUrl("/sales"),
         saleData,
         {
           headers: {

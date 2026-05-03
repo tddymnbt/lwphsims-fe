@@ -51,6 +51,7 @@ export default function VerifyOtpPage() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [otpToken, setOtpToken] = useState<string | null>(null);
   const [timer, setTimer] = useState(300); // 5 minutes timer
   const [canResend, setCanResend] = useState(false);
   const [isResending, setIsResending] = useState(false);
@@ -58,11 +59,15 @@ export default function VerifyOtpPage() {
 
   useEffect(() => {
     const email = localStorage.getItem("userEmail");
-    if (!email) {
+    const token = localStorage.getItem("otpToken");
+
+    if (!email || !token) {
       router.push("/auth/login");
       return;
     }
+
     setUserEmail(email);
+    setOtpToken(token);
   }, [router]);
 
   useEffect(() => {
@@ -84,7 +89,8 @@ export default function VerifyOtpPage() {
     try {
       const response = await axios.post('/api/auth/verify-otp', {
         email: userEmail,
-        otp: otp
+        otp: otp,
+        token: otpToken
       });
 
       if (response.data.status.success) {
@@ -92,6 +98,8 @@ export default function VerifyOtpPage() {
         localStorage.setItem("token", response.data.access.token);
         localStorage.setItem("userData", JSON.stringify(response.data.data));
         localStorage.setItem("userEmail", response.data.data.email); // Store the email from the response
+        localStorage.setItem("isAuthenticated", "true");
+        localStorage.removeItem("otpToken");
         
         // Show success toast
         toast.success("OTP verified successfully! Redirecting to dashboard...");
@@ -127,6 +135,13 @@ export default function VerifyOtpPage() {
       });
 
       if (response.data.status && response.data.status.success) {
+        const nextOtpToken = response.data.status.token;
+
+        if (nextOtpToken) {
+          localStorage.setItem("otpToken", nextOtpToken);
+          setOtpToken(nextOtpToken);
+        }
+
         setTimer(300);
         setCanResend(false);
         setOtp("");

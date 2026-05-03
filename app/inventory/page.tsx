@@ -1,5 +1,6 @@
 "use client";
 
+import { API_BASE_URL, apiUrl } from "@/lib/api-config";
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
@@ -136,8 +137,8 @@ export default function InventoryPage() {
     const fetchDropdowns = async () => {
       try {
         const [catResponse, brandResponse] = await Promise.all([
-          axios.get("https://lwphsims-uat.up.railway.app/products/categories"),
-          axios.get("https://lwphsims-uat.up.railway.app/products/brands")
+          axios.get(apiUrl("/products/categories")),
+          axios.get(apiUrl("/products/brands"))
         ]);
         
         if (catResponse.data.status.success) {
@@ -189,7 +190,7 @@ export default function InventoryPage() {
         });
 
         // Fetch products with current filters
-        const response = await axios.get("https://lwphsims-uat.up.railway.app/products", { params });
+        const response = await axios.get(apiUrl("/products"), { params });
         
         if (response.data.status.success) {
           setProducts(response.data.data);
@@ -217,7 +218,7 @@ export default function InventoryPage() {
     const fetchStockStatusCounts = async () => {
       try {
         // Only fetch if the respective card is visible or hasn't been fetched yet
-        const outOfStockResponse = await axios.get("https://lwphsims-uat.up.railway.app/products", { 
+        const outOfStockResponse = await axios.get(apiUrl("/products"), { 
           params: { 
             isOutOfStock: 'y',
             displayPerPage: 1 // We only need the count
@@ -261,7 +262,7 @@ export default function InventoryPage() {
     setDeletingId(deleteId);
     try {
       const response = await axios.delete(
-        `https://lwphsims-uat.up.railway.app/products/id/${deleteId}`,
+        `${API_BASE_URL}/products/id/${deleteId}`,
         { data: { deleted_by: userExternalId } }
       );
       if (response.data.status.success) {
@@ -327,10 +328,14 @@ export default function InventoryPage() {
 
   return (
     <>
-      <div className="flex flex-col p-4 md:p-6 space-y-4 md:space-y-6 max-w-[1400px] mx-auto w-full">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <h1 className="text-xl md:text-2xl font-bold">Inventory</h1>
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+      <div className="mx-auto flex w-full max-w-[1400px] flex-col space-y-5 bg-slate-50 p-3 sm:p-5 md:p-6">
+        <div className="rounded-lg border bg-white px-4 py-4 shadow-sm sm:px-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Product operations</p>
+              <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-950">Inventory</h1>
+            </div>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
             <Button 
               variant="outline" 
               onClick={() => router.push('/inventory/stock-analysis')} 
@@ -355,25 +360,31 @@ export default function InventoryPage() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            </div>
           </div>
         </div>
 
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           <Card
-            onClick={() => setFilters(f => ({ ...f, outOfStock: !f.outOfStock, lowStock: false }))}
-            className={`cursor-pointer transition-shadow ${filters.outOfStock ? 'ring-2 ring-blue-500 shadow-lg' : ''}`}
+            onClick={() => setFilters(f => ({ ...f, outOfStock: !f.outOfStock }))}
+            className={`cursor-pointer border-slate-200 shadow-sm transition ${filters.outOfStock ? 'ring-2 ring-blue-500 shadow-lg' : 'hover:-translate-y-0.5 hover:shadow-md'}`}
           >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Out of stock</CardTitle>
-              <Box className="h-5 w-5 text-muted-foreground" />
+              <div className="rounded-md bg-red-50 p-2 text-red-600">
+                <Box className="h-5 w-5" />
+              </div>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stockStatusCounts.outOfStock}</div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {filters.outOfStock ? "Filtered list below" : "Click to filter the list"}
+              </p>
             </CardContent>
           </Card>
         </div>
 
-        <Card className="mt-6">
+        <Card className="border-slate-200 shadow-sm">
           <CardContent className="pt-6">
             <div className="mb-4 space-y-4 p-2">
               <div className="flex flex-col lg:flex-row gap-4">
@@ -423,8 +434,8 @@ export default function InventoryPage() {
             </div>
 
             <div className="overflow-x-auto -mx-2 sm:mx-0">
-              <table className="min-w-[900px] w-full border text-sm bg-white rounded shadow">
-                <thead className="bg-gray-50 sticky top-0 z-10">
+              <table className="min-w-[900px] w-full overflow-hidden rounded-md border bg-white text-sm">
+                <thead className="sticky top-0 z-10 bg-slate-50">
                   <tr>
                     <th className="p-2 sm:p-3 text-left align-middle w-[220px] font-semibold text-gray-700 border-b">Name</th>
                     <th className="p-2 sm:p-3 text-left align-middle w-[100px] font-semibold text-gray-700 border-b">Code</th>
@@ -439,15 +450,15 @@ export default function InventoryPage() {
                 <tbody>
                   {isLoading ? (
                     <tr>
-                      <td colSpan={7} className="text-center py-8 text-gray-400">Loading...</td>
+                      <td colSpan={8} className="text-center py-10 text-gray-400">Loading inventory...</td>
                     </tr>
                   ) : error ? (
                     <tr>
-                      <td colSpan={7} className="text-center py-8 text-red-400">{error}</td>
+                      <td colSpan={8} className="text-center py-10 text-red-400">{error}</td>
                     </tr>
                   ) : filteredProducts.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="text-center py-8 text-gray-400">No items found.</td>
+                      <td colSpan={8} className="text-center py-10 text-gray-400">No items found.</td>
                     </tr>
                   ) : (
                     filteredProducts.map((product, idx) => (
@@ -464,7 +475,13 @@ export default function InventoryPage() {
                         <td className="p-2 sm:p-3 text-left align-middle w-[120px] truncate max-w-[100px]">{product.category.name}</td>
                         <td className="p-2 sm:p-3 text-left align-middle w-[120px] truncate max-w-[100px]">{product.brand.name}</td>
                         <td className="p-2 sm:p-3 text-left align-middle w-[80px]">{product.stock.qty_in_stock}</td>
-                        <td className="p-2 sm:p-3 text-left align-middle w-[110px]">₱{Number(product.price).toLocaleString()}</td>
+                        <td className="p-2 sm:p-3 text-left align-middle w-[110px]">
+                          {new Intl.NumberFormat("en-PH", {
+                            style: "currency",
+                            currency: "PHP",
+                            maximumFractionDigits: 0,
+                          }).format(Number(product.price))}
+                        </td>
                         <td className="p-2 sm:p-3 text-left align-middle w-[110px]">{product.is_consigned ? "Yes" : "No"}</td>
                         <td className="p-2 sm:p-3 text-left align-middle w-[160px]">
                           <div className="flex items-center gap-2 justify-start">

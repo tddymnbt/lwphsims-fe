@@ -16,13 +16,16 @@ export default function AuthWrapper({
 
   useEffect(() => {
     const auth = localStorage.getItem("isAuthenticated");
+    const otpToken = localStorage.getItem("otpToken");
     setIsAuthenticated(!!auth);
 
     // Redirect logic
     if (auth && pathname === "/auth/login") {
-      router.push("/verify-otp");
-    } else if (!auth && pathname !== "/auth/login") {
+      router.push("/dashboard");
+    } else if (!auth && otpToken && pathname === "/auth/login") {
       router.push("/auth/verify-otp");
+    } else if (!auth && !otpToken && pathname !== "/auth/login") {
+      router.push("/auth/login");
     }
   }, [pathname, router]);
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { API_BASE_URL } from "@/lib/api-config";
 import Link from "next/link";
 import { ArrowLeft, Calendar, CreditCard, Receipt, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,41 @@ import React, { use, useEffect, useState } from "react";
 import axios from "axios";
 import { getPaginationWindow } from "@/components/ui/pagination-window";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationPrevious, PaginationNext, PaginationEllipsis } from "@/components/ui/pagination";
+
+function TransactionsSkeleton() {
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="w-full border-b bg-white px-2 py-3 md:px-6 md:py-6">
+        <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-2 sm:flex-row">
+          <div className="h-7 w-40 animate-pulse rounded bg-slate-200" />
+          <div className="h-9 w-full animate-pulse rounded-md bg-slate-100 sm:w-32" />
+        </div>
+      </div>
+      <div className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-2 py-3 md:px-4 md:py-6">
+        <Card className="mb-6 shadow-sm">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <div className="h-5 w-5 animate-pulse rounded bg-slate-100" />
+              <div className="h-6 w-40 animate-pulse rounded bg-slate-200" />
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3 p-4">
+            {Array.from({ length: 8 }).map((_, index) => (
+              <div key={index} className="grid grid-cols-[1fr_1fr_1.5fr_1fr_88px_40px] gap-3">
+                <div className="h-5 animate-pulse rounded bg-slate-100" />
+                <div className="h-5 animate-pulse rounded bg-slate-100" />
+                <div className="h-5 animate-pulse rounded bg-slate-100" />
+                <div className="h-5 animate-pulse rounded bg-slate-100" />
+                <div className="h-5 animate-pulse rounded-full bg-slate-100" />
+                <div className="h-8 animate-pulse rounded bg-slate-100" />
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
 
 export default function ClientTransactionsPage({
   params,
@@ -27,7 +63,7 @@ export default function ClientTransactionsPage({
     if (!clientId) return;
     setLoading(true);
     axios
-      .get(`https://lwphsims-uat.up.railway.app/sales/client/${clientId}/transactions`, {
+      .get(`${API_BASE_URL}/sales/client/${clientId}/transactions`, {
         params: {
           pageNumber: currentPage,
           displayPerPage,
@@ -46,6 +82,10 @@ export default function ClientTransactionsPage({
       .catch(() => setError("Failed to fetch transactions."))
       .finally(() => setLoading(false));
   }, [clientId, currentPage]);
+
+  if (loading && transactions.length === 0 && !error) {
+    return <TransactionsSkeleton />;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -83,7 +123,22 @@ export default function ClientTransactionsPage({
                 </thead>
                 <tbody>
                   {loading ? (
-                    <tr><td colSpan={6} className="text-center py-6 sm:py-8">Loading...</td></tr>
+                    <tr>
+                      <td colSpan={6} className="py-6 sm:py-8">
+                        <div className="space-y-3 px-4">
+                          {Array.from({ length: 7 }).map((_, index) => (
+                            <div key={index} className="grid grid-cols-[1fr_1fr_1.5fr_1fr_88px_40px] gap-3">
+                              <div className="h-5 animate-pulse rounded bg-slate-100" />
+                              <div className="h-5 animate-pulse rounded bg-slate-100" />
+                              <div className="h-5 animate-pulse rounded bg-slate-100" />
+                              <div className="h-5 animate-pulse rounded bg-slate-100" />
+                              <div className="h-5 animate-pulse rounded-full bg-slate-100" />
+                              <div className="h-8 animate-pulse rounded bg-slate-100" />
+                            </div>
+                          ))}
+                        </div>
+                      </td>
+                    </tr>
                   ) : error ? (
                     <tr><td colSpan={6} className="text-center text-red-600 py-6 sm:py-8">{error}</td></tr>
                   ) : transactions.length === 0 ? (

@@ -1,5 +1,6 @@
 "use client";
 
+import { API_BASE_URL } from "@/lib/api-config";
 import Link from "next/link";
 import { ArrowLeft, Calendar, Tag, Package, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -28,7 +29,7 @@ export default function ClientConsignmentsPage({
     setLoading(true);
     setError("");
     fetch(
-      `https://lwphsims-uat.up.railway.app/products/consignor/${consignorId}/items?pageNumber=${page}&displayPerPage=10&sortBy=name&orderBy=asc${search ? `&searchValue=${encodeURIComponent(search)}` : ""}`
+      `${API_BASE_URL}/products/consignor/${consignorId}/items?pageNumber=${page}&displayPerPage=10&sortBy=name&orderBy=asc${search ? `&searchValue=${encodeURIComponent(search)}` : ""}`
     )
       .then((res) => res.json())
       .then((data) => {

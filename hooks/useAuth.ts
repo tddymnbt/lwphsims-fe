@@ -95,7 +95,14 @@ export function useAuth() {
     try {
       const response = await api.post('/auth/login', { email });
       if (response.data.status.success) {
-          localStorage.setItem("userEmail", email);
+        const otpToken = response.data.status.token;
+
+        if (!otpToken) {
+          throw new Error("Verification token was not returned. Please try again.");
+        }
+
+        localStorage.setItem("userEmail", email);
+        localStorage.setItem("otpToken", otpToken);
         return Promise.resolve();
         } else {
         throw new Error(response.data.status.message || "Failed to send OTP");
@@ -108,15 +115,23 @@ export function useAuth() {
   // Function for verifying OTP
   const verifyOtp = async (otp: string, email?: string) => {
     try {
+      const otpToken = localStorage.getItem("otpToken");
+
+      if (!otpToken) {
+        throw new Error("Verification token missing. Please request a new OTP.");
+      }
+
       const response = await api.post('/auth/login/verify', {
         email: email || localStorage.getItem("userEmail"),
-        otp: otp
+        otp: otp,
+        token: otpToken
       });
 
       if (response.data.status.success) {
         localStorage.setItem("token", response.data.access.token);
         localStorage.setItem("userData", JSON.stringify(response.data.data));
         localStorage.setItem("userEmail", response.data.data.email);
+        localStorage.removeItem("otpToken");
           localStorage.setItem("isAuthenticated", "true");
           
           setUser({

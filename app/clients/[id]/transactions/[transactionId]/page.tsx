@@ -1,5 +1,6 @@
 "use client";
 
+import { API_BASE_URL, apiUrl } from "@/lib/api-config";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -106,7 +107,7 @@ export default function TransactionDetailPage({
     if (!saleId) return;
     setLoading(true);
     axios
-      .get(`https://lwphsims-uat.up.railway.app/sales/id/${saleId}`)
+      .get(`${API_BASE_URL}/sales/id/${saleId}`)
       .then((res) => {
         if (res.data.status?.success) {
           setSale(res.data.data);
@@ -130,7 +131,7 @@ export default function TransactionDetailPage({
     setIsCancelling(true);
     try {
       const response = await axios.post(
-        "https://lwphsims-uat.up.railway.app/sales/cancel",
+        apiUrl("/sales/cancel"),
         {
           sale_ext_id: saleId,
           cancelled_by: userExternalId,
@@ -141,7 +142,7 @@ export default function TransactionDetailPage({
         toast.success("Transaction cancelled successfully");
         setShowCancelDialog(false);
         // Refresh the sale data
-        const updatedSale = await axios.get(`https://lwphsims-uat.up.railway.app/sales/id/${saleId}`);
+        const updatedSale = await axios.get(`${API_BASE_URL}/sales/id/${saleId}`);
         if (updatedSale.data.status?.success) {
           setSale(updatedSale.data.data);
         }
@@ -166,7 +167,7 @@ export default function TransactionDetailPage({
     setIsExtending(true);
     try {
       const response = await axios.put(
-        `https://lwphsims-uat.up.railway.app/sales/layaway/extend-due-date/${saleId}`,
+        `${API_BASE_URL}/sales/layaway/extend-due-date/${saleId}`,
         {
           due_date: format(newDueDate, "yyyy-MM-dd"),
           updated_by: userExternalId,
@@ -177,7 +178,7 @@ export default function TransactionDetailPage({
         toast.success("Due date extended successfully");
         setShowExtendDialog(false);
         // Refresh the sale data
-        const updatedSale = await axios.get(`https://lwphsims-uat.up.railway.app/sales/id/${saleId}`);
+        const updatedSale = await axios.get(`${API_BASE_URL}/sales/id/${saleId}`);
         if (updatedSale.data.status?.success) {
           setSale(updatedSale.data.data);
         }
@@ -211,7 +212,7 @@ export default function TransactionDetailPage({
     setIsRecordingPayment(true);
     try {
       const response = await axios.post(
-        "https://lwphsims-uat.up.railway.app/sales/payment",
+        apiUrl("/sales/payment"),
         {
           sale_ext_id: saleId,
           payment: {
@@ -228,7 +229,7 @@ export default function TransactionDetailPage({
         setAmountInput("");
         reset();
         // Refresh sale data
-        const updatedSale = await axios.get(`https://lwphsims-uat.up.railway.app/sales/id/${saleId}`);
+        const updatedSale = await axios.get(`${API_BASE_URL}/sales/id/${saleId}`);
         if (updatedSale.data.status?.success) {
           setSale(updatedSale.data.data);
         }

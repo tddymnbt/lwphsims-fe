@@ -1,4 +1,5 @@
 "use client";
+import { API_BASE_URL } from "@/lib/api-config";
 import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -106,7 +107,7 @@ export default function ItemDetailPage() {
     const fetchProduct = async () => {
       try {
         setIsLoading(true);
-        const response = await axios.get(`https://lwphsims-uat.up.railway.app/products/id/${id}`);
+        const response = await axios.get(`${API_BASE_URL}/products/id/${id}`);
         
         if (response.data.status.success) {
           setProduct(response.data.data);
@@ -136,7 +137,7 @@ export default function ItemDetailPage() {
       setLoadingMovements(true);
       setMovementError(null);
       try {
-        const endpoint = `https://lwphsims-uat.up.railway.app/products/id/${product.stock_external_id}/transactions`;
+        const endpoint = `${API_BASE_URL}/products/id/${product.stock_external_id}/transactions`;
         const requestBody = {
           searchValue: movementSearch,
           pageNumber: movementPage,
@@ -189,7 +190,7 @@ export default function ItemDetailPage() {
     setSavingStock(true);
     try {
       if (!product) throw new Error("No product loaded");
-      const endpoint = `https://lwphsims-uat.up.railway.app/products/update-stock/id/${product.stock_external_id}`;
+      const endpoint = `${API_BASE_URL}/products/update-stock/id/${product.stock_external_id}`;
       const payload = {
         type: stockAction, // "increase" or "decrease"
         qty: typeof stockQty === 'number' ? stockQty : 0,
@@ -209,7 +210,7 @@ export default function ItemDetailPage() {
           setShowSuccessModal(false);
           setIsLoading(true);
           try {
-            const refreshed = await axios.get(`https://lwphsims-uat.up.railway.app/products/id/${id}`);
+            const refreshed = await axios.get(`${API_BASE_URL}/products/id/${id}`);
             if (refreshed.data.status.success) {
               setProduct(refreshed.data.data);
               setError(null);

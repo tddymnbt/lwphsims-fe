@@ -3,6 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { Landmark } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -68,15 +69,25 @@ export function BankDetailsModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Bank Details</DialogTitle>
-          <DialogDescription>
-            Please provide the bank details for the Consignor.
-          </DialogDescription>
+      <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-[440px]">
+        <DialogHeader className="border-b bg-slate-50 px-6 py-5">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-md bg-[#756d60]/10 text-[#4d463e]">
+              <Landmark className="h-5 w-5" />
+            </div>
+            <div>
+              <DialogTitle className="text-xl font-semibold tracking-tight">
+                Bank Details
+              </DialogTitle>
+              <DialogDescription className="mt-1">
+                Add payout details for this consignor.
+              </DialogDescription>
+            </div>
+          </div>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)}>
+            <div className="space-y-4 px-6 py-5">
             <FormField
               control={form.control}
               name="account_name"
@@ -116,11 +127,14 @@ export function BankDetailsModal({
                 </FormItem>
               )}
             />
-            <DialogFooter>
+            </div>
+            <DialogFooter className="border-t bg-white px-6 py-4">
               <Button type="button" variant="outline" onClick={onClose}>
                 Cancel
               </Button>
-              <Button type="submit">Save Bank Details</Button>
+              <Button type="submit" className="bg-[#756d60] text-white hover:bg-[#655d52]">
+                Save Bank Details
+              </Button>
             </DialogFooter>
           </form>
         </Form>

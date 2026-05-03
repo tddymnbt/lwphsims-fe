@@ -1,4 +1,5 @@
 "use client";
+import { apiUrl } from "@/lib/api-config";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -42,7 +43,7 @@ export default function StockAnalysisPage() {
       setLoading(true);
       setError(null);
       try {
-        const response = await axios.get("https://lwphsims-uat.up.railway.app/products", {
+        const response = await axios.get(apiUrl("/products"), {
           params: {
             sortBy: "name",
             orderBy: "asc",

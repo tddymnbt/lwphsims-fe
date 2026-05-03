@@ -17,7 +17,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-const API_BASE_URL = "https://lwphsims-uat.up.railway.app";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -37,12 +36,22 @@ export default function LoginPage() {
         return;
       }
 
+      localStorage.removeItem("otpToken");
+
       const response = await axios.post('/api/auth/login', {
         email: email
       });
 
       if (response.data.status.success) {
+        const otpToken = response.data.status.token;
+
+        if (!otpToken) {
+          setError("Verification token was not returned. Please try again.");
+          return;
+        }
+
         localStorage.setItem("userEmail", email);
+        localStorage.setItem("otpToken", otpToken);
         router.push("/auth/verify-otp");
       } else {
         setError(response.data.status.message || "Failed to send verification code");

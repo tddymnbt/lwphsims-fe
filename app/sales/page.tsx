@@ -1,5 +1,6 @@
 "use client";
 
+import { API_BASE_URL } from "@/lib/api-config";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,7 +35,7 @@ const TABS = [
   { label: "Cancelled", value: "cancelled", endpoint: "/sales/cancelled" },
 ];
 
-const API_BASE = "https://lwphsims-uat.up.railway.app";
+const API_BASE = API_BASE_URL;
 
 const TAB_ICONS: Record<string, React.ReactNode> = {
   all: <Receipt className="h-5 w-5 text-muted-foreground" />,

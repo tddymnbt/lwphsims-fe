@@ -1,5 +1,6 @@
 "use client";
 
+import { API_BASE_URL } from "@/lib/api-config";
 import React, { useState, useEffect, use, useRef } from "react";
 import Link from "next/link";
 import axios from "axios";
@@ -134,6 +135,50 @@ function useMediaQuery(query: string) {
   return matches;
 }
 
+function ClientProfileSkeleton() {
+  return (
+    <div className="mx-auto w-full max-w-6xl space-y-5 px-3 py-4 sm:px-4">
+      <Card className="shadow-sm">
+        <CardHeader>
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-center gap-4">
+              <div className="h-9 w-24 animate-pulse rounded-md bg-slate-100" />
+              <div className="space-y-2">
+                <div className="h-7 w-56 animate-pulse rounded bg-slate-200" />
+                <div className="h-4 w-40 animate-pulse rounded bg-slate-100" />
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <div className="h-9 w-20 animate-pulse rounded-md bg-slate-100" />
+              <div className="h-9 w-20 animate-pulse rounded-md bg-slate-100" />
+            </div>
+          </div>
+        </CardHeader>
+      </Card>
+      <div className="grid grid-cols-3 gap-2 md:w-96">
+        <div className="h-10 animate-pulse rounded-md bg-slate-100" />
+        <div className="h-10 animate-pulse rounded-md bg-slate-100" />
+        <div className="h-10 animate-pulse rounded-md bg-slate-100" />
+      </div>
+      <div className="grid gap-5 md:grid-cols-2">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <Card key={index} className="shadow-sm">
+            <CardHeader>
+              <div className="h-5 w-44 animate-pulse rounded bg-slate-200" />
+              <div className="h-4 w-56 animate-pulse rounded bg-slate-100" />
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {Array.from({ length: 4 }).map((__, row) => (
+                <div key={row} className="h-10 animate-pulse rounded-md bg-slate-100" />
+              ))}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // The correct approach for React Server Components in Next.js 14+
 export default function ClientDetailPage({
   params,
@@ -198,7 +243,7 @@ export default function ClientDetailPage({
     setLoadingTransactions(true);
     setTransactionsError(null);
     axios
-      .get(`https://lwphsims-uat.up.railway.app/sales/client/${clientId}/transactions`, {
+      .get(`${API_BASE_URL}/sales/client/${clientId}/transactions`, {
         params: {
           pageNumber: 1,
           displayPerPage: 10,
@@ -229,7 +274,7 @@ export default function ClientDetailPage({
     setLoadingConsignments(true);
     setConsignmentsError(null);
     axios
-      .get(`https://lwphsims-uat.up.railway.app/products/consignor/${clientId}/items`, {
+      .get(`${API_BASE_URL}/products/consignor/${clientId}/items`, {
         params: {
           pageNumber: 1,
           displayPerPage: 50,
@@ -312,14 +357,7 @@ export default function ClientDetailPage({
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Loading client details...</p>
-        </div>
-      </div>
-    );
+    return <ClientProfileSkeleton />;
   }
 
   if (error) {

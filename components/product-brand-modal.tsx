@@ -1,3 +1,4 @@
+import { apiUrl } from "@/lib/api-config";
 import React, { useState } from "react";
 import axios from "axios";
 import {
@@ -40,7 +41,7 @@ export function ProductBrandModal({
 
     try {
       const response = await axios.post(
-        "https://lwphsims-uat.up.railway.app/products/brands",
+        apiUrl("/products/brands"),
         {
           name: brandName,
           created_by: userExternalId,

@@ -1,7 +1,7 @@
+import { API_BASE_URL } from "@/lib/api-config";
 import { NextResponse } from 'next/server';
 import axios from 'axios';
 
-const API_BASE_URL = "https://lwphsims-uat.up.railway.app";
 
 export async function POST(request: Request) {
   try {
@@ -9,7 +9,8 @@ export async function POST(request: Request) {
     
     const response = await axios.post(`${API_BASE_URL}/auth/login/verify`, {
       email: body.email,
-      otp: body.otp
+      otp: body.otp,
+      token: body.token
     });
 
     return NextResponse.json(response.data);

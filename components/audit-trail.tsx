@@ -1,4 +1,5 @@
 "use client";
+import { apiUrl } from "@/lib/api-config";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { DataTable } from "./data-table";
@@ -110,7 +111,7 @@ export default function AuditTrail() {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const res = await axios.get("https://lwphsims-uat.up.railway.app/users", {
+        const res = await axios.get(apiUrl("/users"), {
           params: {
             isActive: "Y",
             pageNumber: 1,
@@ -175,7 +176,7 @@ export default function AuditTrail() {
         }
       }
 
-      const res = await axios.get("https://lwphsims-uat.up.railway.app/logs/activity", { params });
+      const res = await axios.get(apiUrl("/logs/activity"), { params });
       if (res.data.status.success) {
         setLogs(res.data.data);
         setTotalPages(res.data.meta.totalPages);

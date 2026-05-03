@@ -1,5 +1,6 @@
 "use client";
 
+import { apiUrl } from "@/lib/api-config";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -9,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import axios from "axios";
 
-const API_URL = "https://lwphsims-uat.up.railway.app/users";
+const API_URL = apiUrl("/users");
 
 export default function AddUserPage() {
   const router = useRouter();

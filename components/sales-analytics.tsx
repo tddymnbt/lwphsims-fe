@@ -1,5 +1,6 @@
 "use client";
 
+import { API_BASE_URL } from "@/lib/api-config";
 import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -102,7 +103,7 @@ export function SalesAnalytics() {
       setError(null);
       setApiError(null);
       try {
-        let url = `https://lwphsims-uat.up.railway.app/sales/transaction/stats?mode=${pendingFilter.mode}`;
+        let url = `${API_BASE_URL}/sales/transaction/stats?mode=${pendingFilter.mode}`;
         if (pendingFilter.dateFrom && pendingFilter.dateTo) {
           url += `&dateFrom=${formatDateLocal(pendingFilter.dateFrom)}&dateTo=${formatDateLocal(pendingFilter.dateTo)}`;
         }

@@ -1,5 +1,6 @@
 "use client";
 
+import { API_BASE_URL } from "@/lib/api-config";
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -55,7 +56,7 @@ export default function ProfilePage() {
       const updatedBy = localStorage.getItem("user_external_id");
       if (!token || !userExternalId || !updatedBy) throw new Error("Missing authentication or user ID.");
       // Use UAT base URL directly
-      const baseURL = "https://lwphsims-uat.up.railway.app";
+      const baseURL = API_BASE_URL;
       console.log("PUT URL:", `${baseURL}/users/${userExternalId}`);
       console.log("Payload:", {
         first_name: form.first_name,

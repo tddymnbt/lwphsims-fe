@@ -1,3 +1,4 @@
+import { apiUrl } from "@/lib/api-config";
 import { NextResponse } from 'next/server';
 import axios from 'axios';
 
@@ -13,7 +14,7 @@ export async function GET(request: Request) {
       );
     }
 
-    const response = await axios.get('https://lwphsims-uat.up.railway.app/products', {
+    const response = await axios.get(apiUrl("/products"), {
       headers: {
         Authorization: `Bearer ${token}`,
       },

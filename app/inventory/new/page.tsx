@@ -1,5 +1,6 @@
 "use client";
 
+import { apiUrl } from "@/lib/api-config";
 import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -277,7 +278,7 @@ function AddNewItemForm() {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await axios.get("https://lwphsims-uat.up.railway.app/products/categories");
+        const response = await axios.get(apiUrl("/products/categories"));
         if (response.data.status.success) {
           setCategories(response.data.data);
         }
@@ -293,7 +294,7 @@ function AddNewItemForm() {
   useEffect(() => {
     const fetchBrands = async () => {
       try {
-        const response = await axios.get("https://lwphsims-uat.up.railway.app/products/brands");
+        const response = await axios.get(apiUrl("/products/brands"));
         if (response.data.status.success) {
           setBrands(response.data.data);
         }
@@ -310,8 +311,8 @@ function AddNewItemForm() {
     const fetchData = async () => {
       try {
         const [authResponse, consignorsResponse] = await Promise.all([
-          axios.get("https://lwphsims-uat.up.railway.app/products/authenticators"),
-          axios.get("https://lwphsims-uat.up.railway.app/clients?isConsignor=Y")
+          axios.get(apiUrl("/products/authenticators")),
+          axios.get(apiUrl("/clients?isConsignor=Y"))
         ]);
         
         if (authResponse.data.status.success) {
@@ -501,7 +502,7 @@ function AddNewItemForm() {
       }
 
       const response = await axios.post(
-        "https://lwphsims-uat.up.railway.app/products",
+        apiUrl("/products"),
         payload
       );
 
@@ -599,7 +600,7 @@ function AddNewItemForm() {
   const handleCategoryAdded = async (category: { external_id: string; name: string }) => {
     try {
       const response = await axios.post(
-        "https://lwphsims-uat.up.railway.app/products/categories",
+        apiUrl("/products/categories"),
         {
           name: category.name,
           created_by: userExternalId
@@ -642,7 +643,7 @@ function AddNewItemForm() {
         return;
       }
       const response = await axios.post(
-        "https://lwphsims-uat.up.railway.app/products/authenticators",
+        apiUrl("/products/authenticators"),
         {
           name: authenticator.name,
           created_by: userExternalId

@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Save } from "lucide-react";
+import { Save, UserPlus } from "lucide-react";
 import axios from "axios";
 import { toast } from "react-hot-toast";
 
@@ -30,7 +29,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { BankDetailsModal } from "@/components/bank-details-modal"; // Assuming this is correctly located
-import { clientApi } from "@/lib/api";
 
 interface Client {
   id: string;
@@ -90,7 +88,6 @@ export function AddClientModal({
   onClose,
   onClientAdded,
 }: AddClientModalProps) {
-  const router = useRouter(); // Keep for potential future use, but might not navigate directly
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showBankModal, setShowBankModal] = useState(false);
   const [bankDetails, setBankDetails] = useState<{
@@ -98,9 +95,6 @@ export function AddClientModal({
     account_no: string;
     bank: string;
   } | null>(null);
-  const [showSuccessPrompt, setShowSuccessPrompt] = useState(false);
-  const successTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const [pendingSuccessPrompt, setPendingSuccessPrompt] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema) as any,
@@ -179,8 +173,6 @@ export function AddClientModal({
           : null,
         created_by: userData.external_id || "",
       };
-      console.log("Submitting clientData:", clientData);
-
       const response = await axios.post(
         '/api/clients',
         clientData,
@@ -207,9 +199,8 @@ export function AddClientModal({
         consignments: apiClient.consignments_count || 0,
       };
       onClientAdded(mappedClient);
-      setPendingSuccessPrompt(true);
       onClose();
-      console.log("Client added successfully:", response);
+      toast.success("Client added successfully.");
     } catch (error: any) {
       console.error("Failed to submit client:", error);
       if (error.response && error.response.data) {
@@ -259,36 +250,32 @@ export function AddClientModal({
     }
   }, [isOpen, form, setBankDetails]);
 
-  // Show the success prompt after the modal is closed
-  useEffect(() => {
-    if (!isOpen && pendingSuccessPrompt) {
-      setShowSuccessPrompt(true);
-      setPendingSuccessPrompt(false);
-      if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current);
-      successTimeoutRef.current = setTimeout(() => {
-        setShowSuccessPrompt(false);
-      }, 1500);
-    }
-  }, [isOpen, pendingSuccessPrompt]);
-
   return (
     <>
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Add New Client</DialogTitle>
-            <DialogDescription>
-              Enter the details for the new client record. Click save when done.
-            </DialogDescription>
+        <DialogContent className="max-h-[92vh] gap-0 overflow-hidden p-0 sm:max-w-[720px]">
+          <DialogHeader className="border-b bg-slate-50 px-6 py-5">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-md bg-[#756d60]/10 text-[#4d463e]">
+                <UserPlus className="h-5 w-5" />
+              </div>
+              <div>
+                <DialogTitle className="text-xl font-semibold tracking-tight">
+                  Add New Client
+                </DialogTitle>
+                <DialogDescription className="mt-1">
+                  Create a client profile for purchases, consignments, and follow-ups.
+                </DialogDescription>
+              </div>
+            </div>
           </DialogHeader>
           <Form {...form}>
             <form
               onSubmit={form.handleSubmit(onSubmit)}
-              className="space-y-6 px-1 py-4"
+              className="flex max-h-[calc(92vh-92px)] flex-col"
             >
-              {/* Form Fields - Copied from app/clients/new/page.tsx */}
-              {/* Arrange them appropriately within the modal */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex-1 space-y-6 overflow-y-auto px-6 py-5">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <FormField
                   control={form.control}
                   name="first_name"
@@ -450,12 +437,12 @@ export function AddClientModal({
                 )}
               />
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
+              <div className="grid grid-cols-1 gap-4 pt-2 md:grid-cols-2">
                 <FormField
                   control={form.control}
                   name="is_consignor"
                   render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                    <FormItem className="flex flex-row items-center justify-between rounded-md border bg-slate-50 p-4">
                       <div className="space-y-0.5">
                         <FormLabel>Is Consignor</FormLabel>
                       </div>
@@ -476,8 +463,9 @@ export function AddClientModal({
                   )}
                 />
               </div>
+              </div>
 
-              <DialogFooter>
+              <DialogFooter className="border-t bg-white px-6 py-4">
                 <Button
                   type="button"
                   variant="outline"
@@ -486,7 +474,7 @@ export function AddClientModal({
                 >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={isSubmitting}>
+                <Button type="submit" disabled={isSubmitting} className="bg-[#756d60] text-white hover:bg-[#655d52]">
                   {isSubmitting ? (
                     <span className="flex items-center">
                       <svg
@@ -536,30 +524,6 @@ export function AddClientModal({
         />
       )}
 
-      {/* Success Prompt Modal */}
-      {showSuccessPrompt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 w-[90vw] max-w-sm flex flex-col items-center">
-            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-3">
-              <svg
-                className="w-6 h-6 text-green-500"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <h4 className="text-center font-medium text-lg text-gray-900 mb-1">
-              Client Added
-            </h4>
-            <p className="text-center text-gray-600 mb-2">
-              The client was added successfully!
-            </p>
-          </div>
-        </div>
-      )}
     </>
   );
 }

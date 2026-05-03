@@ -5,18 +5,16 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
   LogOut,
-  Package,
-  Search,
-  User,
   UserCircle,
   Repeat,
   Users,
+  ShieldCheck,
+  Info,
 } from "lucide-react";
-import { toast, ToastContainer } from "react-toastify";
+import { ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { MainNav } from "@/components/main-nav";
 import {
   DropdownMenu,
@@ -26,6 +24,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth"; // Assuming you have an auth hook
 
@@ -41,108 +47,42 @@ import { useAuth } from "@/hooks/useAuth"; // Assuming you have an auth hook
 export function SiteHeader() {
   const router = useRouter();
   const { user, isLoading, logout } = useAuth();
-  const [showBackdrop, setShowBackdrop] = useState(false);
-  console.log("name",user?.role?.name);
-  const handleLogout = () => {
-    setShowBackdrop(true);
-    const toastId = toast(
-      <div className="px-5 py-4 flex flex-col items-center bg-white rounded-lg border border-gray-200 shadow-lg">
-        <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-3">
-          <svg
-            className="w-6 h-6 text-blue-500"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            ></path>
-          </svg>
-        </div>
-        <h4 className="text-center font-medium text-lg text-gray-900 mb-1">
-          Confirm Logout
-        </h4>
-        <p className="text-center text-gray-600 mb-4">
-          Are you sure you want to log out? You will be redirected to the login
-          screen.
-        </p>
-        <div className="flex w-full gap-3">
-          <button
-            onClick={() => {
-              toast.dismiss(toastId);
-              setShowBackdrop(false);
-            }}
-            className="flex-1 py-2 border border-gray-300 text-gray-500 rounded-md hover:bg-gray-50 transition-colors"
-          >
-            No
-          </button>
-          <button
-            onClick={async () => {
-              toast.dismiss(toastId);
-              setShowBackdrop(false);
-              try {
-                await logout();
-                router.push("/auth/login");
-              } catch (error) {
-                console.error("Logout failed:", error);
-              }
-            }}
-            className="flex-1 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
-          >
-            Yes
-          </button>
-        </div>
-      </div>,
-      {
-        position: "top-center",
-        autoClose: false,
-        hideProgressBar: true,
-        closeOnClick: false,
-        pauseOnHover: true,
-        draggable: false,
-        closeButton: false,
-        className: "!bg-transparent !shadow-none !p-0 !rounded-none",
-        onClose: () => setShowBackdrop(false),
-      }
-    );
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const confirmLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await logout();
+      router.push("/auth/login");
+    } catch (error) {
+      console.error("Logout failed:", error);
+      setIsLoggingOut(false);
+    }
   };
 
   return (
     <>
-      {showBackdrop && (
-        <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
-          onClick={() => {
-            toast.dismiss();
-            setShowBackdrop(false);
-          }}
-        />
-      )}
       <header
-        className="sticky top-0 z-40 w-full border-b"
-        style={{ backgroundColor: "#989081" }}
+        className="sticky top-0 z-40 w-full border-b border-white/10 bg-[#756d60] shadow-sm"
       >
-        <div className="flex h-16 items-center w-full px-2 md:px-4">
+        <div className="flex h-16 w-full items-center px-3 md:px-6">
           <MainNav />
           <div className="flex items-center ml-auto">
             {isLoading ? (
-              <div className="h-8 w-8 md:h-10 md:w-24 bg-muted/20 rounded-full animate-pulse"></div>
+              <div className="h-9 w-9 animate-pulse rounded-full bg-white/20 md:w-32"></div>
             ) : user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
-                    className="relative h-8 md:h-10 w-auto px-0 md:px-2 space-x-0 md:space-x-2 rounded-full hover:bg-muted/10"
+                    className="relative h-10 w-auto gap-2 rounded-full !bg-transparent px-1.5 text-white hover:!bg-white/15 hover:text-white md:px-2.5"
                   >
-                    <Avatar className="h-7 w-7 md:h-8 md:w-8">
+                    <Avatar className="h-8 w-8 border border-white/25">
                       <AvatarImage
                         alt={user.first_name ?? "User"}
                       />
-                      <AvatarFallback>
+                      <AvatarFallback className="bg-white text-[#4d463e]">
                         {user.first_name
                           ?.split(" ")
                           .map((n: string) => n[0])
@@ -151,8 +91,12 @@ export function SiteHeader() {
                       </AvatarFallback>
                     </Avatar>
                     <div className="text-left hidden sm:block">
-                      <p className="text-sm font-medium leading-none text-black">
+                      <p className="text-sm font-medium leading-none text-white">
                         {user.first_name ?? "-"}
+                      </p>
+                      <p className="mt-1 flex items-center gap-1 text-xs leading-none text-white/70">
+                        <ShieldCheck className="h-3 w-3" />
+                        {user.role?.name ?? "Member"}
                       </p>
                     </div>
                   </Button>
@@ -210,7 +154,7 @@ export function SiteHeader() {
                   )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
-                    onClick={handleLogout}
+                    onClick={() => setShowLogoutDialog(true)}
                     className="dropdown-menu-item text-black"
                   >
                     <LogOut className="mr-2 h-4 w-4 text-gray-700" />
@@ -222,6 +166,42 @@ export function SiteHeader() {
           </div>
         </div>
       </header>
+      <Dialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+        <DialogContent className="max-w-sm rounded-lg border-slate-200 p-0 shadow-xl">
+          <div className="p-6">
+            <DialogHeader className="items-center text-center">
+              <div className="mb-2 flex h-11 w-11 items-center justify-center rounded-md bg-[#756d60]/10 text-[#4d463e]">
+                <Info className="h-5 w-5" />
+              </div>
+              <DialogTitle className="text-xl font-semibold tracking-tight text-slate-950">
+                Confirm Logout
+              </DialogTitle>
+              <DialogDescription className="pt-1 text-sm leading-6 text-slate-600">
+                Are you sure you want to log out? You will be redirected to the login screen.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowLogoutDialog(false)}
+                disabled={isLoggingOut}
+                className="w-full"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                onClick={confirmLogout}
+                disabled={isLoggingOut}
+                className="w-full bg-[#756d60] text-white hover:bg-[#655d52]"
+              >
+                {isLoggingOut ? "Logging out..." : "Log out"}
+              </Button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
       <ToastContainer />
     </>
   );

@@ -1,7 +1,7 @@
+import { API_BASE_URL } from "@/lib/api-config";
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 
-const API_BASE_URL = 'https://lwphsims-uat.up.railway.app';
 
 export async function POST(req: NextRequest) {
   try {

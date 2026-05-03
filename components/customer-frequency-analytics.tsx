@@ -1,3 +1,4 @@
+import { apiUrl } from "@/lib/api-config";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -51,7 +52,7 @@ export default function CustomerFrequencyAnalytics() {
     setLoading(true);
     setError(null);
     try {
-      let url = "https://lwphsims-uat.up.railway.app/sales/transaction/frequencies";
+      let url = apiUrl("/sales/transaction/frequencies");
       if (period === "custom" && dateFrom && dateTo) {
         url += `?dateFrom=${formatDateLocal(dateFrom)}&dateTo=${formatDateLocal(dateTo)}`;
       }
